@@ -1,0 +1,15 @@
+.git
+.github
+node_modules
+dist
+build
+coverage
+playwright-report
+test-results
+npm-debug.log
+docs
+tests
+.env
+.env.local
+.env.production
+gha-creds-*.json

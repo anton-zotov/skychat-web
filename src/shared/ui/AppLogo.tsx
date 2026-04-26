@@ -1,0 +1,30 @@
+import React from 'react';
+import { cn } from '@/utils';
+
+export const AppLogo = ({ className, size = 40, showBadge = false }: { className?: string; size?: number; showBadge?: boolean }) => (
+  <div className={cn("relative inline-block", className)}>
+    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100" height="100" rx="28" fill="url(#bg-grad)" />
+      <path d="M70 45C70 31.1929 58.8071 20 45 20C31.1929 20 20 31.1929 20 45C20 58.8071 31.1929 70 45 70H50C61.0457 70 70 61.0457 70 50V45Z" fill="url(#bubble-grad)" filter="url(#shadow)" />
+      <path d="M80 60C80 48.9543 71.0457 40 60 40C58.1588 40 56.3756 40.2484 54.6853 40.7105C60.8351 44.5122 65 51.2723 65 59V65C65 73.2843 58.2843 80 50 80H45C44.4477 80 43.9025 79.9698 43.3664 79.9113C45.3664 82.9113 48.5 85 52 85H65C73.2843 85 80 78.2843 80 70V60Z" fill="white" fillOpacity="0.4" />
+      <circle cx="35" cy="45" r="5" fill="#0284c7" />
+      <circle cx="55" cy="45" r="5" fill="#0284c7" />
+      <defs>
+        <linearGradient id="bg-grad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#38bdf8" />
+          <stop offset="1" stopColor="#0369a1" />
+        </linearGradient>
+        <linearGradient id="bubble-grad" x1="20" y1="20" x2="70" y2="70" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#ffffff" />
+          <stop offset="1" stopColor="#e0f2fe" />
+        </linearGradient>
+        <filter id="shadow" x="10" y="15" width="70" height="70" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+          <feDropShadow dx="0" dy="8" stdDeviation="8" floodOpacity="0.15" />
+        </filter>
+      </defs>
+    </svg>
+    {showBadge && (
+      <div className="absolute -top-1 -right-1 w-3 h-3 bg-rose-500 rounded-full border-2 border-white shadow-sm animate-pulse" />
+    )}
+  </div>
+);

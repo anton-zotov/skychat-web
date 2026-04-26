@@ -1,0 +1,5 @@
+{
+  "name": "SkyChat Messenger",
+  "description": "A modern real-time messenger with group chats, file sharing, Google authentication, and P2P voice calls.",
+  "requestFramePermissions": []
+}

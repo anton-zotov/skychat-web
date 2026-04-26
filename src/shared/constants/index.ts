@@ -1,0 +1,65 @@
+import { UserProfile } from '@shared/types';
+
+export const ECHO_BOT_USER: UserProfile = {
+  uid: 'echo_bot',
+  displayName: 'Эхо-бот',
+  email: 'bot@skychat.local',
+  photoURL: 'https://api.dicebear.com/7.x/bottts/svg?seed=echo',
+  privacy: { showLastSeen: true, showOnlineStatus: true }
+};
+
+export const APP_VERSION = "v1.0.8";
+
+export const REACTIONS = ['❤️', '👍', '😂', '😮', '😢', '🙏', '🔥', '💯', '👀'];
+
+export const RU_EMOJI_KEYWORDS: Record<string, string[]> = {
+  'улыбка': ['smile', 'smiley', 'grinning'],
+  'смех': ['laughing', 'joy', 'lol', 'rofl'],
+  'сердце': ['heart', 'love', 'heart_eyes'],
+  'лайк': ['+1', 'thumbsup'],
+  'дизлайк': ['-1', 'thumbsdown'],
+  'ок': ['ok_hand'],
+  'огонь': ['fire', 'lit'],
+  'плач': ['cry', 'sob', 'sweat_smile'],
+  'грусть': ['pensive', 'sad', 'disappointed'],
+  'шок': ['astonished', 'hushed', 'scream'],
+  'круто': ['sunglasses', 'cool'],
+  'привет': ['wave', 'hi'],
+  'пока': ['wave', 'bye'],
+  'спасибо': ['pray', 'thanks'],
+  'пожалуйста': ['pray'],
+  'деньги': ['moneybag', 'money_with_wings', 'dollar'],
+  'пиво': ['beer', 'beers'],
+  'вино': ['wine_glass'],
+  'кофе': ['coffee'],
+  'торт': ['birthday', 'cake'],
+  'подарок': ['gift', 'present'],
+  'солнце': ['sunny', 'sun_with_face'],
+  'луна': ['moon', 'crescent_moon'],
+  'звезда': ['star', 'star2'],
+  'молния': ['zap', 'lightning'],
+  'дождь': ['rain', 'umbrella'],
+  'снег': ['snowflake', 'snowboarder'],
+  'кот': ['cat', 'cat2', 'heart_eyes_cat'],
+  'собака': ['dog', 'dog2'],
+  'машина': ['car', 'red_car', 'taxi'],
+  'самолет': ['airplane'],
+  'дом': ['house', 'home'],
+  'телефон': ['iphone', 'phone'],
+  'компьютер': ['computer', 'laptop'],
+  'книга': ['book', 'open_book'],
+  'ручка': ['pen', 'pencil2'],
+  'флаг': ['flag-ru', 'ru'],
+  'праздник': ['tada', 'confetti_ball'],
+  'цветы': ['tulip', 'rose', 'sunflower'],
+  'еда': ['pizza', 'hamburger', 'fries'],
+  'сон': ['zzz', 'sleeping'],
+  'злость': ['angry', 'rage'],
+  'поцелуй': ['kissing_heart', 'kiss'],
+  'рука': ['raised_hand', 'hand'],
+  'глаза': ['eyes'],
+  'время': ['clock1', 'hourglass'],
+  'музыка': ['notes', 'musical_note'],
+  'спорт': ['soccer', 'basketball', 'tennis'],
+  'хихикает': ['face_with_hand_over_mouth', 'sweat_smile', '🤭'],
+};
