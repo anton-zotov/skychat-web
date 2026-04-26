@@ -18,7 +18,7 @@ import { sendMessage, scheduleEchoBotReply } from '@domains/chat/services/messag
 import { compressImage, rotateImage } from '@domains/media/services/uploadService';
 import { GifPicker } from '@domains/media/components/GifPicker';
 
-export function MessageInput({ chat, currentUserId, replyTo, onCancelReply }: { chat: Chat; currentUserId: string; replyTo: Message | null; onCancelReply: () => void }) {
+export function MessageInput({ chat, currentUserId, replyTo, onRequestScrollToBottom, onCancelReply }: { chat: Chat; currentUserId: string; replyTo: Message | null; onRequestScrollToBottom: () => void; onCancelReply: () => void }) {
   const chatId = chat.id;
   const [text, setText] = useState('');
   const [isUploading, setIsUploading] = useState(false);
@@ -65,6 +65,8 @@ export function MessageInput({ chat, currentUserId, replyTo, onCancelReply }: { 
     
     const textToSend = msgText || text;
     if (!textToSend.trim() && !fileUrl && stagedFiles.length === 0 && !isUploading) return;
+
+    onRequestScrollToBottom();
     
     setText('');
     localStorage.removeItem(`draft_${safeChatId}`);

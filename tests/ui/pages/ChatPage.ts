@@ -90,6 +90,29 @@ export class ChatPage {
     return this.page.getByTestId('messages-scroll-container');
   }
 
+  async distanceFromBottom() {
+    return this.messagesContainer.evaluate(element => {
+      const container = element as HTMLDivElement;
+      return container.scrollHeight - container.scrollTop - container.clientHeight;
+    });
+  }
+
+  async scrollAwayFromBottom() {
+    await this.messagesContainer.evaluate(element => {
+      const container = element as HTMLDivElement;
+      container.scrollTop = Math.max(0, container.scrollHeight - container.clientHeight - 600);
+      container.dispatchEvent(new Event('scroll', {bubbles: true}));
+    });
+  }
+
+  async expectPinned(maxDistance = 4) {
+    await expect.poll(async () => this.distanceFromBottom()).toBeLessThan(maxDistance);
+  }
+
+  async expectNotPinned(minDistance = 60) {
+    await expect.poll(async () => this.distanceFromBottom()).toBeGreaterThan(minDistance);
+  }
+
   async expectOpen(chatId: string, name: string) {
     await expect(this.page).toHaveURL(new RegExp(`/chat/${chatId}$`));
     await expect(this.page.getByRole('heading', {name}).last()).toBeVisible();

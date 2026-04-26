@@ -1,9 +1,10 @@
 {
   "name": "react-example",
   "private": true,
-  "version": "1.0.13",
+  "version": "1.0.14",
   "type": "module",
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks",
     "dev": "tsx server.ts",
     "dev:vite": "vite",
     "build": "npm run build:client && npm run build:server",

@@ -13,6 +13,9 @@ import { ECHO_BOT_USER } from '@shared/constants';
 import { initiateCall } from '@domains/call/services/callService';
 import { cn } from '@/utils';
 
+const BOTTOM_THRESHOLD_PX = 50;
+const MEDIA_SETTLE_WINDOW_MS = 1500;
+
 export function ChatWindow({ chatId, currentUserId, onBack, setActiveCall }: { chatId: string; currentUserId: string; onBack: () => void, setActiveCall: (call: Call | null) => void }) {
   const [chatValue] = useDocument(doc(db, 'chats', chatId));
   const chat = useMemo(() => {
@@ -22,11 +25,13 @@ export function ChatWindow({ chatId, currentUserId, onBack, setActiveCall }: { c
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const wasNearBottomRef = useRef(true);
-  const isPinnedRef = useRef(true); // New ref to track pinned state explicitly
+  const isPinnedRef = useRef(true);
   const pendingLoadMoreAnchorRef = useRef<{ messageId: string; offsetTop: number } | null>(null);
   const isRestoringLoadMoreRef = useRef(false);
   const loadMoreRestoreDeadlineRef = useRef(0);
+  const scrollToBottomFrameRef = useRef<number | null>(null);
+  const settleScrollDeadlineRef = useRef(0);
+  const isAutoScrollingRef = useRef(false);
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [messageSearchQuery, setMessageSearchQuery] = useState('');
@@ -65,6 +70,45 @@ export function ChatWindow({ chatId, currentUserId, onBack, setActiveCall }: { c
       messageId: testId.slice('message-'.length),
       offsetTop: firstVisibleMessage.getBoundingClientRect().top - containerRect.top,
     };
+  };
+
+  const isNearBottom = (container: HTMLDivElement) =>
+    container.scrollHeight - container.scrollTop - container.clientHeight < BOTTOM_THRESHOLD_PX;
+
+  const shouldKeepPinned = () => isPinnedRef.current || Date.now() < settleScrollDeadlineRef.current;
+
+  const queueScrollToBottom = ({ settle = false }: { settle?: boolean } = {}) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    isPinnedRef.current = true;
+    setShowScrollButton(false);
+
+    if (settle) {
+      settleScrollDeadlineRef.current = Math.max(
+        settleScrollDeadlineRef.current,
+        Date.now() + MEDIA_SETTLE_WINDOW_MS
+      );
+    }
+
+    if (scrollToBottomFrameRef.current !== null) {
+      return;
+    }
+
+    scrollToBottomFrameRef.current = window.requestAnimationFrame(() => {
+      scrollToBottomFrameRef.current = null;
+
+      const nextContainer = scrollContainerRef.current;
+      if (!nextContainer || isLoadingMore || isRestoringLoadMoreRef.current) {
+        return;
+      }
+
+      isAutoScrollingRef.current = true;
+      nextContainer.scrollTop = nextContainer.scrollHeight;
+      window.requestAnimationFrame(() => {
+        isAutoScrollingRef.current = false;
+      });
+    });
   };
 
   const restoreLoadMoreAnchor = (container: HTMLDivElement) => {
@@ -178,23 +222,14 @@ export function ChatWindow({ chatId, currentUserId, onBack, setActiveCall }: { c
       return;
     }
 
-    // Check if user is near the bottom (e.g., within 50px)
-    const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 50;
-
-    // Scroll if it's the first load or if the user was already pinned to the bottom
     if (isFirstLoadRef.current) {
-      // Use scrollTo for instant jump on first load
-      container.scrollTop = container.scrollHeight;
       isFirstLoadRef.current = false;
-      isPinnedRef.current = true;
-      wasNearBottomRef.current = true;
+      queueScrollToBottom({ settle: true });
     } else if (isPinnedRef.current) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-      wasNearBottomRef.current = true;
+      queueScrollToBottom({ settle: true });
     }
   }, [messages, isLoadingMore, replyTo]);
 
-  // Handle scrolling when images load and change content height
   useEffect(() => {
     const content = contentRef.current;
     const container = scrollContainerRef.current;
@@ -216,26 +251,55 @@ export function ChatWindow({ chatId, currentUserId, onBack, setActiveCall }: { c
         return;
       }
 
-      if (!isLoadingMore && isPinnedRef.current && !isFirstLoadRef.current) {
-        container.scrollTop = container.scrollHeight;
+      if (!isLoadingMore && !isFirstLoadRef.current && shouldKeepPinned()) {
+        queueScrollToBottom();
       }
     });
 
     observer.observe(content);
-    return () => observer.disconnect();
+
+    const handleMediaLoad = (event: Event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLImageElement || target instanceof HTMLVideoElement)) {
+        return;
+      }
+
+      if (!isLoadingMore && !isFirstLoadRef.current && shouldKeepPinned()) {
+        queueScrollToBottom();
+      }
+    };
+
+    content.addEventListener('load', handleMediaLoad, true);
+    content.addEventListener('loadedmetadata', handleMediaLoad, true);
+
+    return () => {
+      observer.disconnect();
+      content.removeEventListener('load', handleMediaLoad, true);
+      content.removeEventListener('loadedmetadata', handleMediaLoad, true);
+    };
   }, [isLoadingMore]);
 
-  // Reset first load ref when chatId changes
+  useEffect(() => () => {
+    if (scrollToBottomFrameRef.current !== null) {
+      window.cancelAnimationFrame(scrollToBottomFrameRef.current);
+    }
+  }, []);
+
   useEffect(() => {
     isFirstLoadRef.current = true;
     isPinnedRef.current = true;
-    wasNearBottomRef.current = true;
     setMsgLimit(50);
     setHasMore(true);
     setReplyTo(null);
     pendingLoadMoreAnchorRef.current = null;
     isRestoringLoadMoreRef.current = false;
     loadMoreRestoreDeadlineRef.current = 0;
+    settleScrollDeadlineRef.current = 0;
+    isAutoScrollingRef.current = false;
+    if (scrollToBottomFrameRef.current !== null) {
+      window.cancelAnimationFrame(scrollToBottomFrameRef.current);
+      scrollToBottomFrameRef.current = null;
+    }
   }, [chatId]);
 
   const handleLoadMore = () => {
@@ -257,11 +321,18 @@ export function ChatWindow({ chatId, currentUserId, onBack, setActiveCall }: { c
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    // Use a small threshold to determine if we are "pinned" to the bottom
-    const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 50;
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    const isAtBottom = distanceFromBottom < BOTTOM_THRESHOLD_PX;
     isPinnedRef.current = isAtBottom;
-    wasNearBottomRef.current = isAtBottom;
     setShowScrollButton(!isAtBottom);
+
+    if (!isAtBottom && (!isAutoScrollingRef.current || distanceFromBottom > BOTTOM_THRESHOLD_PX * 4)) {
+      settleScrollDeadlineRef.current = 0;
+      if (scrollToBottomFrameRef.current !== null) {
+        window.cancelAnimationFrame(scrollToBottomFrameRef.current);
+        scrollToBottomFrameRef.current = null;
+      }
+    }
 
     if (isRestoringLoadMoreRef.current && (isAtBottom || Date.now() > loadMoreRestoreDeadlineRef.current)) {
       isRestoringLoadMoreRef.current = false;
@@ -275,7 +346,15 @@ export function ChatWindow({ chatId, currentUserId, onBack, setActiveCall }: { c
 
   const scrollToBottom = () => {
     isPinnedRef.current = true;
-    wasNearBottomRef.current = true;
+    settleScrollDeadlineRef.current = Math.max(
+      settleScrollDeadlineRef.current,
+      Date.now() + MEDIA_SETTLE_WINDOW_MS
+    );
+    isAutoScrollingRef.current = true;
+    window.requestAnimationFrame(() => {
+      isAutoScrollingRef.current = false;
+    });
+    setShowScrollButton(false);
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
@@ -521,6 +600,7 @@ export function ChatWindow({ chatId, currentUserId, onBack, setActiveCall }: { c
           chat={chat} 
           currentUserId={currentUserId} 
           replyTo={replyTo} 
+          onRequestScrollToBottom={() => queueScrollToBottom({ settle: true })}
           onCancelReply={() => setReplyTo(null)} 
         />
       </div>

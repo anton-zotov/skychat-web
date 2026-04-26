@@ -469,6 +469,9 @@ function nextTimestamp() {
 }
 
 function resolveStoredValue(value, currentValue) {
+  if (value instanceof MockTimestamp) {
+    return new MockTimestamp(value.toMillis());
+  }
   if (value === serverTimestampMarker) {
     return nextTimestamp();
   }
