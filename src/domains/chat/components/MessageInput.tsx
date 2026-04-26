@@ -127,6 +127,7 @@ export function MessageInput({ chat, currentUserId, replyTo, onRequestScrollToBo
       }
 
       await sendMessage(chat, currentUserId, textToSend, actualType, attachments, replyTo || undefined, finalFileUrl, finalFileName);
+      onRequestScrollToBottom();
 
       if (chat.type === 'saved' && actualType === 'text' && textToSend && textToSend.startsWith('/echo')) {
         const echoText = textToSend.substring(5).trim() || 'Эхо!';

@@ -1,9 +1,4 @@
 #!/bin/sh
 set -eu
 
-echo "Running unit tests..."
-npm run test
-
-echo "Running UI tests..."
-npm run test:ui
-
+node scripts/run-pre-commit.mjs

@@ -32,6 +32,7 @@ export function ChatWindow({ chatId, currentUserId, onBack, setActiveCall }: { c
   const scrollToBottomFrameRef = useRef<number | null>(null);
   const settleScrollDeadlineRef = useRef(0);
   const isAutoScrollingRef = useRef(false);
+  const forcePinnedUntilRef = useRef(0);
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [messageSearchQuery, setMessageSearchQuery] = useState('');
@@ -75,9 +76,12 @@ export function ChatWindow({ chatId, currentUserId, onBack, setActiveCall }: { c
   const isNearBottom = (container: HTMLDivElement) =>
     container.scrollHeight - container.scrollTop - container.clientHeight < BOTTOM_THRESHOLD_PX;
 
-  const shouldKeepPinned = () => isPinnedRef.current || Date.now() < settleScrollDeadlineRef.current;
+  const shouldKeepPinned = () =>
+    isPinnedRef.current ||
+    Date.now() < settleScrollDeadlineRef.current ||
+    Date.now() < forcePinnedUntilRef.current;
 
-  const queueScrollToBottom = ({ settle = false }: { settle?: boolean } = {}) => {
+  const queueScrollToBottom = ({ settle = false, force = false }: { settle?: boolean; force?: boolean } = {}) => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
@@ -87,6 +91,13 @@ export function ChatWindow({ chatId, currentUserId, onBack, setActiveCall }: { c
     if (settle) {
       settleScrollDeadlineRef.current = Math.max(
         settleScrollDeadlineRef.current,
+        Date.now() + MEDIA_SETTLE_WINDOW_MS
+      );
+    }
+
+    if (force) {
+      forcePinnedUntilRef.current = Math.max(
+        forcePinnedUntilRef.current,
         Date.now() + MEDIA_SETTLE_WINDOW_MS
       );
     }
@@ -296,6 +307,7 @@ export function ChatWindow({ chatId, currentUserId, onBack, setActiveCall }: { c
     loadMoreRestoreDeadlineRef.current = 0;
     settleScrollDeadlineRef.current = 0;
     isAutoScrollingRef.current = false;
+    forcePinnedUntilRef.current = 0;
     if (scrollToBottomFrameRef.current !== null) {
       window.cancelAnimationFrame(scrollToBottomFrameRef.current);
       scrollToBottomFrameRef.current = null;
@@ -326,7 +338,15 @@ export function ChatWindow({ chatId, currentUserId, onBack, setActiveCall }: { c
     isPinnedRef.current = isAtBottom;
     setShowScrollButton(!isAtBottom);
 
-    if (!isAtBottom && (!isAutoScrollingRef.current || distanceFromBottom > BOTTOM_THRESHOLD_PX * 4)) {
+    if (isAtBottom) {
+      forcePinnedUntilRef.current = 0;
+    }
+
+    if (
+      !isAtBottom &&
+      Date.now() >= forcePinnedUntilRef.current &&
+      (!isAutoScrollingRef.current || distanceFromBottom > BOTTOM_THRESHOLD_PX * 4)
+    ) {
       settleScrollDeadlineRef.current = 0;
       if (scrollToBottomFrameRef.current !== null) {
         window.cancelAnimationFrame(scrollToBottomFrameRef.current);
@@ -600,7 +620,7 @@ export function ChatWindow({ chatId, currentUserId, onBack, setActiveCall }: { c
           chat={chat} 
           currentUserId={currentUserId} 
           replyTo={replyTo} 
-          onRequestScrollToBottom={() => queueScrollToBottom({ settle: true })}
+          onRequestScrollToBottom={() => queueScrollToBottom({ settle: true, force: true })}
           onCancelReply={() => setReplyTo(null)} 
         />
       </div>
