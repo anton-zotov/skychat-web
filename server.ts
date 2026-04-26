@@ -2,6 +2,7 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import webpush from "web-push";
+import rateLimit from "express-rate-limit";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -19,6 +20,12 @@ webpush.setVapidDetails(
 async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT || 3000);
+  const pageLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
 
   app.use(express.json());
 
@@ -160,7 +167,7 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*', (req, res) => {
+    app.get('*', pageLimiter, (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
