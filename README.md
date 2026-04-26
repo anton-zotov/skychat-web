@@ -12,6 +12,7 @@ Feature documentation lives in [docs/FEATURES.md](docs/FEATURES.md). Keep that f
 Deployment instructions for Cloud Run live in [docs/CLOUD_RUN.md](docs/CLOUD_RUN.md).
 GitHub Actions automation for Cloud Run is documented in the same deployment guide.
 Agent workflow instructions live in [AGENTS.md](AGENTS.md), including the rule to bump the app version before every agent-authored commit.
+The release version in `package.json` must stay in sync with `src/shared/constants/index.ts` (`APP_VERSION`).
 
 ## Run Locally
 

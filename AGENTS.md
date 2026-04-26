@@ -6,7 +6,8 @@ These instructions apply to all agent-driven development work in this repository
 
 - Before every agent-authored git commit, bump the app version.
 - Default to a patch bump unless the user explicitly asks for minor or major.
-- Update `package.json` and any lockfile/version artifacts that should stay in sync.
+- Keep `package.json` and `src/shared/constants/index.ts` (`APP_VERSION`) in sync.
+- Update any lockfile/version artifacts that should stay in sync.
 - Preferred command:
   `npm version patch --no-git-tag-version`
 

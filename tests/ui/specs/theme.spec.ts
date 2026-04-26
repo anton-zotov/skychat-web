@@ -29,6 +29,11 @@ test('renders side drawer in dark theme', async ({page, drawer, settings}) => {
   await expect(page.getByTestId('side-drawer')).toHaveScreenshot('side-drawer-dark-surface.png');
 });
 
+test('uses a stable mocked app version in UI tests', async ({page, drawer}) => {
+  await drawer.open();
+  await expect(page.getByText('v1.0.8')).toBeVisible();
+});
+
 test('renders landing screen in dark theme', async ({page, drawer, settings, chatList, desktopViewport}) => {
   await drawer.open();
   await drawer.openSettings();

@@ -39,6 +39,7 @@ export async function installMockApp(page: Page, baseURL: string) {
   const allowedOrigin = new URL(baseURL).origin;
   const moduleOverrides: Array<[RegExp, string]> = [
     [/\/src\/firebase\.ts(?:\?.*)?$/, '/tests/ui/module-mocks/firebase-local.js'],
+    [/\/src\/shared\/constants\/index\.ts(?:\?.*)?$/, '/tests/ui/module-mocks/shared-constants.js'],
     [/\/firebase_firestore(?:\.js)?(?:\?.*)?$/, '/tests/ui/module-mocks/firebase-firestore.js'],
     [/\/firebase_storage(?:\.js)?(?:\?.*)?$/, '/tests/ui/module-mocks/firebase-storage.js'],
     [/\/react-firebase-hooks_auth(?:\.js)?(?:\?.*)?$/, '/tests/ui/module-mocks/hooks-auth.js'],
