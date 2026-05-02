@@ -4,6 +4,13 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+      '@domains': path.resolve(__dirname, './src/domains'),
+      '@shared': path.resolve(__dirname, './src/shared'),
+    },
+  },
   test: {
     environment: 'jsdom',
     globals: true,
@@ -14,10 +21,5 @@ export default defineConfig({
       'tests/unit/**/*.{test,spec}.{ts,tsx}',
     ],
     exclude: ['tests/ui/**'],
-    alias: {
-      '@': path.resolve(__dirname, '.'),
-      '@domains': path.resolve(__dirname, './src/domains'),
-      '@shared': path.resolve(__dirname, './src/shared'),
-    },
   },
 });

@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -6,10 +7,26 @@ import rateLimit from "express-rate-limit";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Prefer runtime-provided VAPID keys. Fall back to generated ephemeral keys in dev.
-const generatedVapidKeys = webpush.generateVAPIDKeys();
-const vapidPublicKey = process.env.VAPID_PUBLIC_KEY || generatedVapidKeys.publicKey;
-const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY || generatedVapidKeys.privateKey;
+function resolveVapidKeys() {
+  const publicKey = process.env.VAPID_PUBLIC_KEY;
+  const privateKey = process.env.VAPID_PRIVATE_KEY;
+
+  if (publicKey && privateKey) {
+    return { publicKey, privateKey, source: 'environment' as const };
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Missing VAPID_PUBLIC_KEY or VAPID_PRIVATE_KEY in production.');
+  }
+
+  const generatedKeys = webpush.generateVAPIDKeys();
+  console.warn('VAPID keys are not configured. Using ephemeral development keys; existing push subscriptions will stop working after restart.');
+  return { ...generatedKeys, source: 'generated' as const };
+}
+
+const vapidKeys = resolveVapidKeys();
+const vapidPublicKey = vapidKeys.publicKey;
+const vapidPrivateKey = vapidKeys.privateKey;
 
 webpush.setVapidDetails(
   "mailto: <anton.a.zotov@gmail.com>",

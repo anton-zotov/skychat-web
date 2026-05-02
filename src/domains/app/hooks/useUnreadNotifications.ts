@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { collection, doc, getDoc, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
+import { collection, doc, getDoc, onSnapshot, query, where } from 'firebase/firestore';
 
 import { db } from '@/firebase';
+import { subscribeCurrentUserToPush } from '@domains/notification/services/notificationService';
 import type { Chat, UserProfile } from '@shared/types';
 import { ECHO_BOT_USER } from '@shared/constants';
 
@@ -30,27 +31,7 @@ export function useUnreadNotifications({ currentUserId, selectedChatId }: UseUnr
     }
 
     try {
-      const registration = await navigator.serviceWorker.ready;
-      const response = await fetch('/api/vapidPublicKey');
-      const vapidPublicKey = await response.text();
-
-      const padding = '='.repeat((4 - vapidPublicKey.length % 4) % 4);
-      const base64 = (vapidPublicKey + padding).replace(/\-/g, '+').replace(/_/g, '/');
-      const rawData = window.atob(base64);
-      const outputArray = new Uint8Array(rawData.length);
-
-      for (let i = 0; i < rawData.length; ++i) {
-        outputArray[i] = rawData.charCodeAt(i);
-      }
-
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: outputArray,
-      });
-
-      await updateDoc(doc(db, 'users', currentUserId), {
-        pushSubscription: JSON.parse(JSON.stringify(subscription)),
-      });
+      await subscribeCurrentUserToPush(currentUserId);
 
       toast.success('Уведомления успешно включены');
     } catch (error) {

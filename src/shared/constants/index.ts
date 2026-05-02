@@ -8,7 +8,7 @@ export const ECHO_BOT_USER: UserProfile = {
   privacy: { showLastSeen: true, showOnlineStatus: true }
 };
 
-export const APP_VERSION = "v1.0.18";
+export const APP_VERSION = "v1.0.19";
 
 export const REACTIONS = ['❤️', '👍', '😂', '😮', '😢', '🙏', '🔥', '💯', '👀'];
 
