@@ -1,5 +1,75 @@
 import {test, expect} from '../fixtures';
 
+test('wraps long markdown table messages without widening the chat layout', async ({page, chatList, chat}) => {
+  await page.evaluate(async () => {
+    const chatDoc = window.__skychatMock?.getDocument('chats/design-lab') as any;
+    if (!chatDoc?.updatedAt) {
+      throw new Error('Missing chat timestamp');
+    }
+
+    const Timestamp = chatDoc.updatedAt.constructor;
+    const createdAt = new Timestamp(chatDoc.updatedAt.toMillis() + 60_000);
+    const longToken = 'supercalifragilistic'.repeat(24);
+
+    await window.__skychatMock?.setDocument('chats/design-lab/messages/msg-long-unbroken', {
+      id: 'msg-long-unbroken',
+      chatId: 'design-lab',
+      senderId: 'sam',
+      text: `A long table cell should wrap:\n\n| Field | Value |\n| --- | --- |\n| Token | ${longToken} |`,
+      type: 'text',
+      createdAt,
+      readBy: {
+        user_me: createdAt,
+      },
+    });
+
+    await window.__skychatMock?.updateDocument('chats/design-lab', {
+      updatedAt: createdAt,
+      lastMessage: {
+        text: 'A long link/token should wrap',
+        senderId: 'sam',
+        createdAt,
+      },
+    });
+  });
+
+  await chatList.openChat('design-lab', 'Design Lab');
+
+  const layout = await chat.getMessage('msg-long-unbroken').locator.evaluate(message => {
+    const container = document.querySelector('[data-testid="messages-scroll-container"]') as HTMLElement;
+    const bubble = message.querySelector('.markdown-body')?.parentElement as HTMLElement | null;
+    const text = message.querySelector('.markdown-body') as HTMLElement | null;
+    const tableCell = message.querySelector('td') as HTMLElement | null;
+    if (!container || !bubble || !text) {
+      throw new Error('Missing message layout nodes');
+    }
+
+    const containerRect = container.getBoundingClientRect();
+    const messageRect = message.getBoundingClientRect();
+    const bubbleRect = bubble.getBoundingClientRect();
+    const textRect = text.getBoundingClientRect();
+
+    return {
+      containerClientWidth: container.clientWidth,
+      containerScrollWidth: container.scrollWidth,
+      messageLeft: messageRect.left,
+      messageRight: messageRect.right,
+      bubbleRight: bubbleRect.right,
+      textRight: textRect.right,
+      containerLeft: containerRect.left,
+      containerRight: containerRect.right,
+      cellOverflowWrap: tableCell ? getComputedStyle(tableCell).overflowWrap : null,
+    };
+  });
+
+  expect(layout.containerScrollWidth).toBeLessThanOrEqual(layout.containerClientWidth);
+  expect(layout.messageLeft).toBeGreaterThanOrEqual(layout.containerLeft);
+  expect(layout.messageRight).toBeLessThanOrEqual(layout.containerRight);
+  expect(layout.bubbleRight).toBeLessThanOrEqual(layout.containerRight);
+  expect(layout.textRight).toBeLessThanOrEqual(layout.containerRight);
+  expect(layout.cellOverflowWrap).toBe('anywhere');
+});
+
 test('renders markdown, video, and attachments; supports in-chat search, reply jumping, read receipts, and image viewer', async ({page, desktopViewport, chatList, chat, imageViewer}) => {
   await chatList.openChat('design-lab', 'Design Lab');
 
