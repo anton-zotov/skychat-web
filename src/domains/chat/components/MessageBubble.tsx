@@ -341,14 +341,14 @@ export function MessageBubble({ message, isMine, showAvatar, chat, currentUserId
             )}
             
             {messageImages.length > 0 && (
-              <div className={cn("mb-2", messageImages.length > 1 ? "grid grid-cols-2 gap-2" : "flex")}>
+              <div className={cn("mb-2 min-w-0 max-w-full overflow-hidden", messageImages.length > 1 ? "grid grid-cols-2 gap-2" : "flex")}>
                 {messageImages.map((img, idx) => (
                   <img 
                     key={idx}
                     src={img.url} 
                     alt={img.name} 
                     className={cn(
-                      "w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity block",
+                      "min-w-0 w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity block",
                       messageImages.length === 1 && "max-w-full md:max-w-xs object-contain"
                     )}
                     style={{ aspectRatio: messageImages.length > 1 ? '1 / 1' : 'auto', objectFit: messageImages.length > 1 ? 'cover' : 'contain' }}
@@ -363,7 +363,7 @@ export function MessageBubble({ message, isMine, showAvatar, chat, currentUserId
             )}
             
             {otherAttachments.length > 0 && (
-              <div className="flex flex-col gap-2 mb-2">
+              <div className="flex min-w-0 max-w-full flex-col gap-2 mb-2">
                 {otherAttachments.map((att, idx) => (
                   (att.type === 'video' || isVideoFile(att.name)) ? (
                     <video 
@@ -372,7 +372,7 @@ export function MessageBubble({ message, isMine, showAvatar, chat, currentUserId
                       controls 
                       playsInline
                       webkit-playsinline="true"
-                      className="max-w-full h-auto md:max-w-xs rounded-lg block"
+                      className="min-w-0 w-full max-w-full h-auto md:max-w-xs rounded-lg block"
                     />
                   ) : (
                     <a 
@@ -380,10 +380,10 @@ export function MessageBubble({ message, isMine, showAvatar, chat, currentUserId
                       href={att.url} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 bg-black/10 p-2 rounded-lg hover:bg-black/20 transition-colors w-full"
+                      className="flex min-w-0 max-w-full items-center gap-2 bg-black/10 p-2 rounded-lg hover:bg-black/20 transition-colors w-full"
                     >
-                      <FileIcon size={20} />
-                      <span className="text-sm font-medium truncate max-w-[200px]">{att.name}</span>
+                      <FileIcon size={20} className="flex-shrink-0" />
+                      <span className="min-w-0 flex-1 text-sm font-medium truncate">{att.name}</span>
                     </a>
                   )
                 ))}
@@ -396,7 +396,7 @@ export function MessageBubble({ message, isMine, showAvatar, chat, currentUserId
                 controls 
                 playsInline
                 webkit-playsinline="true"
-                className="max-w-full h-auto rounded-lg mb-2 block"
+                className="min-w-0 w-full max-w-full h-auto rounded-lg mb-2 block"
               />
             )}
             {isImageViewerOpen && messageImages[viewerImageIndex] && (
@@ -472,10 +472,10 @@ export function MessageBubble({ message, isMine, showAvatar, chat, currentUserId
                 href={message.fileUrl} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 bg-black/10 p-2 rounded-lg mb-2 hover:bg-black/20 transition-colors"
+                className="flex min-w-0 max-w-full items-center gap-2 bg-black/10 p-2 rounded-lg mb-2 hover:bg-black/20 transition-colors"
               >
-                <FileIcon size={20} />
-                <span className="text-sm font-medium truncate max-w-[200px]">{message.fileName}</span>
+                <FileIcon size={20} className="flex-shrink-0" />
+                <span className="min-w-0 flex-1 text-sm font-medium truncate">{message.fileName}</span>
               </a>
             )}
             

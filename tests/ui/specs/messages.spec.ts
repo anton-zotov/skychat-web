@@ -70,6 +70,171 @@ test('wraps long markdown table messages without widening the chat layout', asyn
   expect(layout.cellOverflowWrap).toBe('anywhere');
 });
 
+test('keeps long attachment names inside the chat layout', async ({page, chatList, chat}) => {
+  await page.setViewportSize({width: 320, height: 700});
+
+  await page.evaluate(async () => {
+    const chatDoc = window.__skychatMock?.getDocument('chats/design-lab') as any;
+    if (!chatDoc?.updatedAt) {
+      throw new Error('Missing chat timestamp');
+    }
+
+    const Timestamp = chatDoc.updatedAt.constructor;
+    const createdAt = new Timestamp(chatDoc.updatedAt.toMillis() + 60_000);
+    const longFileName = `${'release-candidate-build-artifact-'.repeat(12)}notes.txt`;
+
+    await window.__skychatMock?.setDocument('chats/design-lab/messages/msg-long-attachment', {
+      id: 'msg-long-attachment',
+      chatId: 'design-lab',
+      senderId: 'sam',
+      text: 'Attachment filename should not widen the message bubble.',
+      type: 'mixed',
+      attachments: [
+        {
+          url: 'data:text/plain;base64,bm90ZXM=',
+          name: longFileName,
+          type: 'file',
+        },
+      ],
+      createdAt,
+      readBy: {
+        user_me: createdAt,
+      },
+    });
+
+    await window.__skychatMock?.updateDocument('chats/design-lab', {
+      updatedAt: createdAt,
+      lastMessage: {
+        text: 'Attachment filename should not widen the message bubble.',
+        senderId: 'sam',
+        createdAt,
+      },
+    });
+  });
+
+  await chatList.openChat('design-lab', 'Design Lab');
+
+  const layout = await chat.getMessage('msg-long-attachment').locator.evaluate(message => {
+    const container = document.querySelector('[data-testid="messages-scroll-container"]') as HTMLElement;
+    const bubble = message.querySelector('.markdown-body')?.parentElement as HTMLElement | null;
+    const fileLink = message.querySelector('a[href^="data:text/plain"]') as HTMLElement | null;
+    const fileName = fileLink?.querySelector('span') as HTMLElement | null;
+    if (!container || !bubble || !fileLink || !fileName) {
+      throw new Error('Missing attachment layout nodes');
+    }
+
+    const containerRect = container.getBoundingClientRect();
+    const messageRect = message.getBoundingClientRect();
+    const bubbleRect = bubble.getBoundingClientRect();
+    const fileLinkRect = fileLink.getBoundingClientRect();
+    const fileNameRect = fileName.getBoundingClientRect();
+
+    return {
+      containerClientWidth: container.clientWidth,
+      containerScrollWidth: container.scrollWidth,
+      messageLeft: messageRect.left,
+      messageRight: messageRect.right,
+      bubbleRight: bubbleRect.right,
+      fileLinkRight: fileLinkRect.right,
+      fileNameRight: fileNameRect.right,
+      containerLeft: containerRect.left,
+      containerRight: containerRect.right,
+      fileLinkMinWidth: getComputedStyle(fileLink).minWidth,
+      fileNameMinWidth: getComputedStyle(fileName).minWidth,
+    };
+  });
+
+  expect(layout.containerScrollWidth).toBeLessThanOrEqual(layout.containerClientWidth);
+  expect(layout.messageLeft).toBeGreaterThanOrEqual(layout.containerLeft);
+  expect(layout.messageRight).toBeLessThanOrEqual(layout.containerRight);
+  expect(layout.bubbleRight).toBeLessThanOrEqual(layout.containerRight);
+  expect(layout.fileLinkRight).toBeLessThanOrEqual(layout.containerRight);
+  expect(layout.fileNameRight).toBeLessThanOrEqual(layout.containerRight);
+  expect(layout.fileLinkMinWidth).toBe('0px');
+  expect(layout.fileNameMinWidth).toBe('0px');
+});
+
+test('keeps oversized image attachments inside the chat layout', async ({page, chatList, chat}) => {
+  await page.evaluate(async () => {
+    const chatDoc = window.__skychatMock?.getDocument('chats/design-lab') as any;
+    if (!chatDoc?.updatedAt) {
+      throw new Error('Missing chat timestamp');
+    }
+
+    const Timestamp = chatDoc.updatedAt.constructor;
+    const createdAt = new Timestamp(chatDoc.updatedAt.toMillis() + 60_000);
+    const svg = encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1200" viewBox="0 0 2400 1200"><rect width="2400" height="1200" fill="#0ea5e9"/></svg>'
+    );
+
+    await window.__skychatMock?.setDocument('chats/design-lab/messages/msg-wide-images', {
+      id: 'msg-wide-images',
+      chatId: 'design-lab',
+      senderId: 'sam',
+      text: '',
+      type: 'mixed',
+      attachments: [
+        {
+          url: `data:image/svg+xml;charset=UTF-8,${svg}`,
+          name: 'wide-image-a.svg',
+          type: 'image',
+        },
+        {
+          url: `data:image/svg+xml;charset=UTF-8,${svg}`,
+          name: 'wide-image-b.svg',
+          type: 'image',
+        },
+      ],
+      createdAt,
+      readBy: {
+        user_me: createdAt,
+      },
+    });
+
+    await window.__skychatMock?.updateDocument('chats/design-lab', {
+      updatedAt: createdAt,
+      lastMessage: {
+        text: 'Images',
+        senderId: 'sam',
+        createdAt,
+      },
+    });
+  });
+
+  await chatList.openChat('design-lab', 'Design Lab');
+
+  const layout = await chat.getMessage('msg-wide-images').locator.evaluate(message => {
+    const container = document.querySelector('[data-testid="messages-scroll-container"]') as HTMLElement;
+    const imageGrid = message.querySelector('img')?.parentElement as HTMLElement | null;
+    const bubble = imageGrid?.parentElement as HTMLElement | null;
+    if (!container || !bubble || !imageGrid) {
+      throw new Error('Missing image attachment layout nodes');
+    }
+
+    const containerRect = container.getBoundingClientRect();
+    const messageRect = message.getBoundingClientRect();
+    const bubbleRect = bubble.getBoundingClientRect();
+    const imageGridRect = imageGrid.getBoundingClientRect();
+
+    return {
+      containerClientWidth: container.clientWidth,
+      containerScrollWidth: container.scrollWidth,
+      messageLeft: messageRect.left,
+      messageRight: messageRect.right,
+      bubbleRight: bubbleRect.right,
+      imageGridRight: imageGridRect.right,
+      containerLeft: containerRect.left,
+      containerRight: containerRect.right,
+    };
+  });
+
+  expect(layout.containerScrollWidth).toBeLessThanOrEqual(layout.containerClientWidth);
+  expect(layout.messageLeft).toBeGreaterThanOrEqual(layout.containerLeft);
+  expect(layout.messageRight).toBeLessThanOrEqual(layout.containerRight);
+  expect(layout.bubbleRight).toBeLessThanOrEqual(layout.containerRight);
+  expect(layout.imageGridRight).toBeLessThanOrEqual(layout.containerRight);
+});
+
 test('renders markdown, video, and attachments; supports in-chat search, reply jumping, read receipts, and image viewer', async ({page, desktopViewport, chatList, chat, imageViewer}) => {
   await chatList.openChat('design-lab', 'Design Lab');
 
