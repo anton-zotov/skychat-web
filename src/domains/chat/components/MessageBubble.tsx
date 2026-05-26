@@ -204,7 +204,7 @@ export function MessageBubble({ message, isMine, showAvatar, chat, currentUserId
           <div 
             onContextMenu={handleContextMenu}
             className={cn(
-              "p-3 rounded-2xl shadow-sm border relative min-w-0 w-fit",
+              "p-3 rounded-2xl shadow-sm border relative min-w-0 max-w-full w-fit",
               isMine 
                 ? "bg-sky-600 text-white border-sky-500 rounded-tr-sm" 
                 : "bg-slate-50 text-slate-900 border-slate-200 rounded-tl-sm",
@@ -519,7 +519,7 @@ export function MessageBubble({ message, isMine, showAvatar, chat, currentUserId
             ) : (
               <>
                 {message.text && (
-                  <div className="markdown-body text-sm leading-relaxed break-all whitespace-pre-wrap overflow-wrap-anywhere">
+                  <div className="markdown-body min-w-0 max-w-full text-sm leading-relaxed break-all whitespace-pre-wrap [overflow-wrap:anywhere] [&_*]:max-w-full [&_a]:[overflow-wrap:anywhere] [&_code]:[overflow-wrap:anywhere] [&_pre]:overflow-x-auto [&_pre]:whitespace-pre-wrap [&_table]:w-full [&_td]:[overflow-wrap:anywhere] [&_th]:[overflow-wrap:anywhere]">
                     <ReactMarkdown 
                       remarkPlugins={[remarkGfm]}
                       components={{
