@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, BellOff, LogOut, MessageSquare, Settings, X } from 'lucide-react';
+import { Bell, BellOff, LogOut, MessageSquare, Settings, Smartphone, X } from 'lucide-react';
 
 import { logout } from '@/firebase';
 import { APP_VERSION } from '@shared/constants';
@@ -17,6 +17,7 @@ type SideDrawerProps = {
     photoURL: string | null;
   };
   notifPermission: NotificationPermission;
+  androidBuildUrl: string | null;
   onClose: () => void;
   onOpenSettings: () => void;
   onRequestNotifications: () => void;
@@ -27,6 +28,7 @@ export function SideDrawer({
   totalUnreadCount,
   user,
   notifPermission,
+  androidBuildUrl,
   onClose,
   onOpenSettings,
   onRequestNotifications,
@@ -95,6 +97,18 @@ export function SideDrawer({
             <Settings size={20} />
             <span className="font-medium">Настройки</span>
           </Button>
+          {androidBuildUrl && (
+            <a
+              data-testid="android-client-link"
+              href={androidBuildUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full justify-start gap-3 h-12 inline-flex items-center rounded-xl px-3 text-slate-700 transition-colors hover:bg-slate-100 dark:text-white/70 dark:hover:bg-white/10"
+            >
+              <Smartphone size={20} />
+              <span className="font-medium">Android клиент</span>
+            </a>
+          )}
           <div className="my-2 border-t border-slate-200 dark:border-white/10" />
           <Button
             data-testid="logout-button"

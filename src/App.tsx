@@ -15,6 +15,7 @@ import { EmptyChatState } from '@domains/app/components/EmptyChatState';
 import { SideDrawer } from '@domains/app/components/SideDrawer';
 import { useChatRouting } from '@domains/app/hooks/useChatRouting';
 import { useUnreadNotifications } from '@domains/app/hooks/useUnreadNotifications';
+import { useAndroidBuild } from '@domains/app/hooks/useAndroidBuild';
 import { SettingsModal } from '@domains/settings/components/SettingsModal';
 import { useTheme } from '@shared/hooks/useTheme';
 import { ErrorBoundary } from '@shared/ui/ErrorBoundary';
@@ -93,6 +94,8 @@ export default function App() {
     currentUserId: user?.uid || null,
     selectedChatId,
   });
+
+  const { url: androidBuildUrl } = useAndroidBuild();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -251,6 +254,7 @@ export default function App() {
           totalUnreadCount={totalUnreadCount}
           user={user}
           notifPermission={notifPermission}
+          androidBuildUrl={androidBuildUrl}
           onClose={() => setIsDrawerOpen(false)}
           onOpenSettings={() => {
             setIsSettingsModalOpen(true);
