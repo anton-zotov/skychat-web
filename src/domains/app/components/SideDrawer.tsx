@@ -105,7 +105,7 @@ export function SideDrawer({
               href={androidBuildUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full justify-start gap-3 h-12 inline-flex items-center rounded-xl px-3 text-slate-700 transition-colors hover:bg-slate-100 dark:text-white/70 dark:hover:bg-white/10"
+              className="w-full justify-start gap-3 h-12 inline-flex items-center rounded-xl text-slate-700 transition-colors hover:bg-slate-100 dark:text-white/70 dark:hover:bg-white/10"
             >
               <Smartphone size={20} />
               <span className="font-medium">Android клиент</span>
@@ -117,7 +117,7 @@ export function SideDrawer({
               href={windowsBuildUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full justify-start gap-3 h-12 inline-flex items-center rounded-xl px-3 text-slate-700 transition-colors hover:bg-slate-100 dark:text-white/70 dark:hover:bg-white/10"
+              className="w-full justify-start gap-3 h-12 inline-flex items-center rounded-xl text-slate-700 transition-colors hover:bg-slate-100 dark:text-white/70 dark:hover:bg-white/10"
             >
               <Monitor size={20} />
               <span className="font-medium">Windows клиент</span>
