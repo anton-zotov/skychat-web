@@ -8,7 +8,7 @@ export const ECHO_BOT_USER: UserProfile = {
   privacy: { showLastSeen: true, showOnlineStatus: true }
 };
 
-export const APP_VERSION = "v1.0.25";
+export const APP_VERSION = "v1.0.26";
 
 /**
  * Stable download URL of the latest published Android build. Lives in the
