@@ -8,7 +8,15 @@ export const ECHO_BOT_USER: UserProfile = {
   privacy: { showLastSeen: true, showOnlineStatus: true }
 };
 
-export const APP_VERSION = "v1.0.24";
+export const APP_VERSION = "v1.0.25";
+
+/**
+ * Stable download URL of the latest published Android build. Lives in the
+ * `Skychat builds` repo (latest-only file). The web UI falls back to this URL
+ * when the Firestore `appConfig/android` document has no valid `downloadUrl`.
+ */
+export const ANDROID_APP_DOWNLOAD_URL =
+  'https://raw.githubusercontent.com/anton-zotov/skychat-builds/main/android/skychat-latest.apk';
 
 export const REACTIONS = ['❤️', '👍', '😂', '😮', '😢', '🙏', '🔥', '💯', '👀'];
 
