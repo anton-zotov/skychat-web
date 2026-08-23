@@ -16,6 +16,7 @@ import { SideDrawer } from '@domains/app/components/SideDrawer';
 import { useChatRouting } from '@domains/app/hooks/useChatRouting';
 import { useUnreadNotifications } from '@domains/app/hooks/useUnreadNotifications';
 import { useAndroidBuild } from '@domains/app/hooks/useAndroidBuild';
+import { useWindowsBuild } from '@domains/app/hooks/useWindowsBuild';
 import { SettingsModal } from '@domains/settings/components/SettingsModal';
 import { useTheme } from '@shared/hooks/useTheme';
 import { ErrorBoundary } from '@shared/ui/ErrorBoundary';
@@ -96,6 +97,7 @@ export default function App() {
   });
 
   const { url: androidBuildUrl } = useAndroidBuild();
+  const { url: windowsBuildUrl } = useWindowsBuild();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -255,6 +257,7 @@ export default function App() {
           user={user}
           notifPermission={notifPermission}
           androidBuildUrl={androidBuildUrl}
+          windowsBuildUrl={windowsBuildUrl}
           onClose={() => setIsDrawerOpen(false)}
           onOpenSettings={() => {
             setIsSettingsModalOpen(true);

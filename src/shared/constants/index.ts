@@ -8,7 +8,7 @@ export const ECHO_BOT_USER: UserProfile = {
   privacy: { showLastSeen: true, showOnlineStatus: true }
 };
 
-export const APP_VERSION = "v1.0.26";
+export const APP_VERSION = "v1.0.27";
 
 /**
  * Stable download URL of the latest published Android build. Lives in the
@@ -17,6 +17,15 @@ export const APP_VERSION = "v1.0.26";
  */
 export const ANDROID_APP_DOWNLOAD_URL =
   'https://raw.githubusercontent.com/anton-zotov/skychat-builds/main/android/skychat-latest.apk';
+
+/**
+ * Stable download URL of the latest published Windows desktop build. Lives in
+ * the `Skychat builds` repo (latest-only file). The web UI falls back to this
+ * URL when the Firestore `appConfig/windows` document has no valid
+ * `downloadUrl`.
+ */
+export const WINDOWS_APP_DOWNLOAD_URL =
+  'https://raw.githubusercontent.com/anton-zotov/skychat-builds/main/desktop/skychat-latest.exe';
 
 export const REACTIONS = ['❤️', '👍', '😂', '😮', '😢', '🙏', '🔥', '💯', '👀'];
 
