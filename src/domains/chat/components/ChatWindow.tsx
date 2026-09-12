@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useDocument, useCollection } from 'react-firebase-hooks/firestore';
 import { doc, query, collection, orderBy, limit, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { ChevronLeft, Search, MoreVertical, Calendar, ArrowDown, Bookmark, Phone, X } from 'lucide-react';
+import { ChevronLeft, Search, MoreVertical, Calendar, ArrowDown, Phone, X } from 'lucide-react';
 import { db } from '@/firebase';
 import { Chat, Message, UserProfile, Call } from '@shared/types';
 import { Button } from '@shared/ui/Button';
@@ -9,7 +9,7 @@ import { Avatar } from '@shared/ui/Avatar';
 import { StatusBadge } from '@shared/ui/StatusBadge';
 import { MessageBubble } from './MessageBubble';
 import { MessageInput } from './MessageInput';
-import { ECHO_BOT_USER } from '@shared/constants';
+import { getReadByMap } from '@shared/helpers/chat';
 import { initiateCall } from '@domains/call/services/callService';
 import { cn } from '@/utils';
 
@@ -144,8 +144,8 @@ export function ChatWindow({ chatId, currentUserId, onBack, setActiveCall }: { c
   };
 
   const otherParticipantId = chat?.participants.find(id => id !== currentUserId);
-  const [otherUserValue] = useDocument(otherParticipantId && otherParticipantId !== 'echo_bot' ? doc(db, 'users', otherParticipantId) : null);
-  const otherUser = otherParticipantId === 'echo_bot' ? ECHO_BOT_USER : (otherUserValue?.data() as UserProfile | undefined);
+  const [otherUserValue] = useDocument(otherParticipantId ? doc(db, 'users', otherParticipantId) : null);
+  const otherUser = otherUserValue?.data() as UserProfile | undefined;
 
   const [messagesValue] = useCollection(
     query(
@@ -382,15 +382,15 @@ export function ChatWindow({ chatId, currentUserId, onBack, setActiveCall }: { c
   useEffect(() => {
     if (!messages.length || !currentUserId || !chatId) return;
     
-    const unreadMessages = messages.filter(m => 
-      m.senderId !== currentUserId && 
-      (!m.readBy || !(currentUserId in m.readBy))
+    const unreadMessages = messages.filter(m =>
+      m.senderId !== currentUserId &&
+      !(currentUserId in getReadByMap(m.readBy))
     );
-    
+
     if (unreadMessages.length > 0) {
       unreadMessages.forEach(msg => {
         updateDoc(doc(db, 'chats', chatId, 'messages', msg.id), {
-          [`readBy.${currentUserId}`]: serverTimestamp()
+          readBy: { ...getReadByMap(msg.readBy), [currentUserId]: serverTimestamp() }
         }).catch(console.error);
       });
     }
@@ -407,13 +407,12 @@ export function ChatWindow({ chatId, currentUserId, onBack, setActiveCall }: { c
 
   if (!chat) return null;
 
-  const isSaved = chat.type === 'saved';
   const resetSearchFilters = () => {
     setMessageSearchQuery('');
     setSearchDateFrom('');
     setSearchDateTo('');
   };
-  const chatName = isSaved ? 'Свои сообщения' : (chat.type === 'group' ? chat.name : otherUser?.displayName || 'Загрузка...');
+  const chatName = chat.type === 'group' ? chat.name : otherUser?.displayName || 'Загрузка...';
 
   return (
     <div className="flex flex-col h-full w-full min-h-0">
@@ -423,18 +422,13 @@ export function ChatWindow({ chatId, currentUserId, onBack, setActiveCall }: { c
             <ChevronLeft size={24} />
           </Button>
           <Avatar 
-            src={isSaved || chat.type === 'group' ? undefined : otherUser?.photoURL} 
+            src={chat.type === 'group' ? undefined : otherUser?.photoURL} 
             alt={chatName} 
             className="w-10 h-10" 
-            fallbackIcon={isSaved ? <Bookmark size={20} /> : undefined}
           />
           <div>
             <h3 className="font-bold text-slate-900 leading-none text-sm md:text-base truncate max-w-[150px] md:max-w-none dark:text-white">{chatName}</h3>
-            {isSaved ? (
-              <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold dark:text-white/45">
-                Заметки и файлы
-              </span>
-            ) : chat.type === 'group' ? (
+            {chat.type === 'group' ? (
               <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold dark:text-white/45">
                 {chat.participants.length} участников
               </span>
@@ -444,7 +438,7 @@ export function ChatWindow({ chatId, currentUserId, onBack, setActiveCall }: { c
           </div>
         </div>
         <div className="flex items-center gap-1.5 md:gap-2">
-          {!isSaved && (
+          {otherParticipantId && (
             <Button 
               data-testid="start-call-button"
               variant="ghost" 

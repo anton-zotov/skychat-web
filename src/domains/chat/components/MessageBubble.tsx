@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useDocument } from 'react-firebase-hooks/firestore';
 import { doc, updateDoc, arrayRemove, arrayUnion, deleteDoc } from 'firebase/firestore';
 import { toast } from 'sonner';
-import { Bot, CornerUpLeft, Image as ImageIcon, Reply, Pencil, X, File as FileIcon, ChevronLeft, ChevronRight, CheckCheck, Check, SmilePlus } from 'lucide-react';
+import { CornerUpLeft, Image as ImageIcon, Reply, Pencil, X, File as FileIcon, ChevronLeft, ChevronRight, CheckCheck, Check, SmilePlus } from 'lucide-react';
 import { motion } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -10,13 +10,13 @@ import { db } from '@/firebase';
 import { Chat, Message, UserProfile } from '@shared/types';
 import { Avatar } from '@shared/ui/Avatar';
 import { Button } from '@shared/ui/Button';
-import { ECHO_BOT_USER } from '@shared/constants';
 import { isImageFile, isVideoFile } from '@shared/helpers/file';
+import { getReadByMap } from '@shared/helpers/chat';
 import { cn } from '@/utils';
 
 function ReadReceiptItem({ uid, timestamp }: { key?: any; uid: string; timestamp: any }) {
-  const [userDoc] = useDocument(uid !== 'echo_bot' ? doc(db, 'users', uid) : null);
-  const user = uid === 'echo_bot' ? ECHO_BOT_USER : (userDoc?.data() as UserProfile | undefined);
+  const [userDoc] = useDocument(doc(db, 'users', uid));
+  const user = userDoc?.data() as UserProfile | undefined;
   const timeString = timestamp ? new Date(timestamp.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '...';
   
   return (
@@ -43,15 +43,11 @@ interface MessageBubbleProps {
 const REACTIONS = ['❤️', '👍', '😂', '😮', '😢', '🙏', '🔥', '💯', '👀'];
 
 export function MessageBubble({ message, isMine, showAvatar, chat, currentUserId, onReply }: MessageBubbleProps) {
-  const [senderValue] = useDocument(message.senderId !== 'echo_bot' ? doc(db, 'users', message.senderId) : null);
-  const sender = message.senderId === 'echo_bot' 
-    ? ECHO_BOT_USER 
-    : senderValue?.data() as UserProfile | undefined;
-  
-  const [replySenderValue] = useDocument(message.replyTo?.senderId && message.replyTo?.senderId !== 'echo_bot' ? doc(db, 'users', message.replyTo.senderId) : null);
-  const replySender = message.replyTo?.senderId === 'echo_bot' 
-    ? ECHO_BOT_USER 
-    : replySenderValue?.data() as UserProfile | undefined;
+  const [senderValue] = useDocument(doc(db, 'users', message.senderId));
+  const sender = senderValue?.data() as UserProfile | undefined;
+
+  const [replySenderValue] = useDocument(message.replyTo?.senderId ? doc(db, 'users', message.replyTo.senderId) : null);
+  const replySender = replySenderValue?.data() as UserProfile | undefined;
 
   const [showReadInfo, setShowReadInfo] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -81,7 +77,7 @@ export function MessageBubble({ message, isMine, showAvatar, chat, currentUserId
     return message.attachments?.filter(att => !(att.type === 'image' || isImageFile(att.name))) || [];
   }, [message.attachments]);
 
-  const readByEntries = Object.entries(message.readBy || {}).filter(([uid]) => uid !== message.senderId);
+  const readByEntries = Object.entries(getReadByMap(message.readBy)).filter(([uid]) => uid !== message.senderId);
   const isRead = readByEntries.length > 0;
   const isAllRead = chat.type === 'private' ? isRead : readByEntries.length === chat.participants.length - 1;
 
@@ -194,7 +190,6 @@ export function MessageBubble({ message, isMine, showAvatar, chat, currentUserId
             src={sender?.photoURL} 
             alt={sender?.displayName} 
             className="w-8 h-8" 
-            fallbackIcon={message.senderId === 'echo_bot' ? <Bot size={16} /> : undefined}
           />
         )}
       </div>

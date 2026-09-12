@@ -29,24 +29,6 @@ export const createChat = async (currentUserId: string, selectedUsers: string[],
   return chatRef.id;
 };
 
-export const initSavedMessages = async (currentUserId: string) => {
-  const existingQuery = query(
-    collection(db, 'chats'),
-    where('type', '==', 'saved'),
-    where('participants', 'array-contains', currentUserId)
-  );
-  const existing = await getDocs(existingQuery);
-  if (!existing.empty) return;
-
-  await addDoc(collection(db, 'chats'), {
-    name: 'Избранное',
-    type: 'saved',
-    participants: [currentUserId],
-    updatedAt: serverTimestamp(),
-    createdBy: currentUserId,
-  });
-};
-
 export const markAsRead = async (chatId: string, currentUserId: string) => {
   await updateDoc(doc(db, 'chats', chatId), {
     [`unreadCount.${currentUserId}`]: 0

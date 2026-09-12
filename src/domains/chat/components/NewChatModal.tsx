@@ -6,7 +6,6 @@ import { CheckCheck, Search, Sparkles, Users, X } from 'lucide-react';
 import { db } from '@/firebase';
 import { cn } from '@/utils';
 import { createChat } from '@domains/chat/services/chatService';
-import { ECHO_BOT_USER } from '@shared/constants';
 import { UserProfile } from '@shared/types';
 import { Avatar } from '@shared/ui/Avatar';
 import { Button } from '@shared/ui/Button';
@@ -28,12 +27,10 @@ export function NewChatModal({
   const [contactQuery, setContactQuery] = useState('');
 
   const users = useMemo(
-    () => [
-      ECHO_BOT_USER,
-      ...((usersValue?.docs
+    () =>
+      usersValue?.docs
         .map((doc) => doc.data() as UserProfile)
-        .filter((user) => user.uid !== currentUserId) ?? [])),
-    ],
+        .filter((user) => user.uid !== currentUserId) ?? [],
     [currentUserId, usersValue],
   );
 

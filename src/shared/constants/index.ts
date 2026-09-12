@@ -1,14 +1,4 @@
-import { UserProfile } from '@shared/types';
-
-export const ECHO_BOT_USER: UserProfile = {
-  uid: 'echo_bot',
-  displayName: 'Эхо-бот',
-  email: 'bot@skychat.local',
-  photoURL: 'https://api.dicebear.com/7.x/bottts/svg?seed=echo',
-  privacy: { showLastSeen: true, showOnlineStatus: true }
-};
-
-export const APP_VERSION = "v1.0.29";
+export const APP_VERSION = "v1.0.30";
 
 /**
  * Stable download URL of the latest published Android build. Lives in the

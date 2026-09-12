@@ -5,7 +5,7 @@ import { collection, doc, getDoc, onSnapshot, query, where } from 'firebase/fire
 import { db } from '@/firebase';
 import { subscribeCurrentUserToPush } from '@domains/notification/services/notificationService';
 import type { Chat, UserProfile } from '@shared/types';
-import { ECHO_BOT_USER } from '@shared/constants';
+import { getLastMessageInfo } from '@shared/helpers/chat';
 
 type UseUnreadNotificationsOptions = {
   currentUserId: string | null;
@@ -61,8 +61,9 @@ export function useUnreadNotifications({ currentUserId, selectedChatId }: UseUnr
       if (isFirstLoadRef.current) {
         snapshot.docs.forEach((chatDoc) => {
           const chat = chatDoc.data() as Chat;
-          if (chat.lastMessage?.createdAt) {
-            lastNotifiedRef.current[chatDoc.id] = chat.lastMessage.createdAt.toMillis().toString();
+          const createdAt = getLastMessageInfo(chat).createdAt;
+          if (createdAt) {
+            lastNotifiedRef.current[chatDoc.id] = createdAt.toMillis().toString();
           }
         });
         isFirstLoadRef.current = false;
@@ -73,9 +74,9 @@ export function useUnreadNotifications({ currentUserId, selectedChatId }: UseUnr
         if (change.type !== 'modified') return;
 
         const chat = { id: change.doc.id, ...change.doc.data() } as Chat;
-        const lastMessage = chat.lastMessage;
+        const lastMessage = getLastMessageInfo(chat);
 
-        if (!lastMessage || lastMessage.senderId === currentUserId) return;
+        if (!lastMessage.text || lastMessage.senderId === currentUserId) return;
 
         const messageId = lastMessage.createdAt?.toMillis().toString();
         if (!messageId || lastNotifiedRef.current[chat.id] === messageId) return;
@@ -89,9 +90,7 @@ export function useUnreadNotifications({ currentUserId, selectedChatId }: UseUnr
         let senderName = 'Новое сообщение';
         if (chat.type === 'private') {
           const otherParticipantId = chat.participants.find((id) => id !== currentUserId);
-          if (otherParticipantId === 'echo_bot') {
-            senderName = ECHO_BOT_USER.displayName;
-          } else if (otherParticipantId) {
+          if (otherParticipantId) {
             const userDoc = await getDoc(doc(db, 'users', otherParticipantId));
             senderName = (userDoc.data() as UserProfile | undefined)?.displayName || 'SkyChat';
           }

@@ -1,11 +1,11 @@
 import React from 'react';
 import { useDocument } from 'react-firebase-hooks/firestore';
 import { doc } from 'firebase/firestore';
-import { Bookmark, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 
 import { db } from '@/firebase';
 import { cn } from '@/utils';
-import { ECHO_BOT_USER } from '@shared/constants';
+import { getLastMessageInfo } from '@shared/helpers/chat';
 import { Avatar } from '@shared/ui/Avatar';
 import { Chat, UserProfile } from '@shared/types';
 
@@ -79,36 +79,28 @@ function ChatItem({
   currentUserId,
   currentUserPrivacy,
 }: ChatItemProps) {
-  const isSaved = chat.type === 'saved';
   const otherParticipantId = chat.participants.find((id) => id !== currentUserId);
   const [otherUserValue] = useDocument(
-    !isSaved && otherParticipantId && otherParticipantId !== 'echo_bot'
+    chat.type !== 'group' && otherParticipantId
       ? doc(db, 'users', otherParticipantId)
       : null,
   );
-  const otherUser =
-    otherParticipantId === 'echo_bot'
-      ? ECHO_BOT_USER
-      : (otherUserValue?.data() as UserProfile | undefined);
+  const otherUser = otherUserValue?.data() as UserProfile | undefined;
 
-  const name = isSaved
-    ? 'Свои сообщения'
-    : chat.type === 'group'
-      ? chat.name
-      : otherUser?.displayName || 'Загрузка…';
-  const photo = isSaved || chat.type === 'group' ? undefined : otherUser?.photoURL;
+  const name = chat.type === 'group'
+    ? chat.name
+    : otherUser?.displayName || 'Загрузка…';
+  const photo = chat.type === 'group' ? undefined : otherUser?.photoURL;
   const unreadCount = chat.unreadCount?.[currentUserId] || 0;
-  const preview = chat.lastMessage?.text || 'Нет сообщений';
+  const preview = getLastMessageInfo(chat).text || 'Нет сообщений';
   const isOnline =
-    !isSaved &&
-    (otherParticipantId === 'echo_bot' ||
-      (otherUser?.lastSeen &&
-        typeof otherUser.lastSeen.toMillis === 'function' &&
-        Date.now() - otherUser.lastSeen.toMillis() < 60000));
+    otherUser?.lastSeen &&
+    typeof otherUser.lastSeen.toMillis === 'function' &&
+    Date.now() - otherUser.lastSeen.toMillis() < 60000;
 
   const myShowOnline = currentUserPrivacy?.showOnlineStatus !== false;
   const theirShowOnline = otherUser?.privacy?.showOnlineStatus !== false;
-  const canSeeOnline = !isSaved && myShowOnline && theirShowOnline;
+  const canSeeOnline = myShowOnline && theirShowOnline;
 
   return (
     <button
@@ -128,7 +120,6 @@ function ChatItem({
           alt={name}
           className="h-11 w-11"
           online={canSeeOnline && isOnline}
-          fallbackIcon={isSaved ? <Bookmark size={18} /> : undefined}
         />
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">

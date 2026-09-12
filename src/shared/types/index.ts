@@ -15,13 +15,16 @@ export interface UserProfile {
 export interface Chat {
   id: string;
   name?: string;
-  type: 'private' | 'group' | 'saved';
+  type: 'private' | 'group';
   participants: string[];
-  lastMessage?: {
-    text: string;
-    senderId: string;
-    createdAt: any;
-  };
+  lastMessage?:
+    | string
+    | {
+        text: string;
+        senderId: string;
+        createdAt: any;
+      };
+  lastSenderId?: string;
   unreadCount?: Record<string, number>;
   updatedAt: any;
   createdBy: string;
@@ -41,7 +44,7 @@ export interface Message {
     type: string; // 'image' | 'video' | 'file'
   }[];
   createdAt: any;
-  readBy?: Record<string, any>;
+  readBy?: Record<string, any> | string[];
   reactions?: Record<string, string[]>;
   isEdited?: boolean;
   replyTo?: {

@@ -32,7 +32,7 @@ test('searches chats and navigates via keyboard shortcuts', async ({page, deskto
     await expect(page).toHaveURL(/\/chat\/design-lab$/);
 
     await page.keyboard.press('Alt+ArrowDown');
-    await expect(page).toHaveURL(/\/chat\/saved-user-me$/);
+    await expect(page).toHaveURL(/\/chat\/anna-private$/);
 
     await page.keyboard.press('Alt+ArrowUp');
     await expect(page).toHaveURL(/\/chat\/design-lab$/);

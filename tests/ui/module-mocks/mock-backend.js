@@ -209,20 +209,6 @@ const mockChats = [
     createdBy: mockCurrentUserId,
   },
   {
-    id: 'saved-user-me',
-    name: 'Saved Messages',
-    type: 'saved',
-    participants: [mockCurrentUserId],
-    lastMessage: {
-      text: 'Checklist: keep snapshots deterministic.',
-      senderId: mockCurrentUserId,
-      createdAt: new MockTimestamp('2026-04-26T08:56:00.000Z'),
-    },
-    unreadCount: {[mockCurrentUserId]: 0},
-    updatedAt: new MockTimestamp('2026-04-26T08:56:00.000Z'),
-    createdBy: mockCurrentUserId,
-  },
-  {
     id: 'anna-private',
     type: 'private',
     participants: [mockCurrentUserId, 'anna'],
@@ -379,16 +365,6 @@ const mockMessagesByChat = {
       readBy: {
         [mockCurrentUserId]: new MockTimestamp('2026-04-26T09:23:15.000Z'),
       },
-    },
-  ],
-  'saved-user-me': [
-    {
-      id: 'msg-saved-1',
-      chatId: 'saved-user-me',
-      senderId: mockCurrentUserId,
-      text: 'Checklist: keep snapshots deterministic.',
-      type: 'text',
-      createdAt: new MockTimestamp('2026-04-26T08:56:00.000Z'),
     },
   ],
   'anna-private': [

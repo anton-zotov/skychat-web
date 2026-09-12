@@ -11,7 +11,6 @@ SkyChat is a Firebase-backed real-time messenger with:
 - Google sign-in
 - one-to-one chats
 - group chats
-- a built-in "Saved Messages" personal chat
 - rich message composition with files, media, GIFs, emoji, reactions, replies, and edits
 - browser notifications and push subscription support
 - basic in-app audio calling
@@ -47,13 +46,11 @@ SkyChat is a Firebase-backed real-time messenger with:
 - The chat list is loaded from Firebase in real time and ordered by `updatedAt`.
 - Users can search chats from the main list.
 - Search behavior differs by chat type:
-  saved messages match saved-message labels, groups match group name, and private chats match the other participant's display name.
-- A "Saved Messages" chat is auto-created for each user if missing.
+  groups match group name, and private chats match the other participant's display name.
 - Users can create:
   private chats with one participant or group chats with multiple participants.
 - When creating a private chat, the app reuses an existing direct conversation if one already exists.
 - The "New Chat" modal allows optional group naming.
-- The Echo Bot appears as a selectable contact.
 
 ## Presence And Privacy
 
@@ -63,13 +60,11 @@ SkyChat is a Firebase-backed real-time messenger with:
 - Presence visibility is reciprocal:
   if a user hides a status category, they also lose visibility into that category for others.
 - "Online" is based on a recent `lastSeen` threshold.
-- Echo Bot is always treated as online.
 
 ## Chat List Item Behavior
 
 - Each chat row shows avatar, title, latest message preview, update time, and unread badge.
 - Private chats show the other participant's avatar and online indicator when visibility rules allow it.
-- Saved Messages uses a bookmark-style fallback icon instead of a user avatar.
 
 ## Message Timeline
 
@@ -169,16 +164,9 @@ SkyChat is a Firebase-backed real-time messenger with:
 - The GIF picker supports:
   trending view, recent view, debounced search, and inline selection.
 
-## Echo Bot
-
-- Echo Bot is a built-in pseudo-user.
-- If a chat includes Echo Bot, the bot sends an automatic delayed reply.
-- In Saved Messages, users can trigger Echo Bot manually with `/echo <text>`.
-- Echo Bot updates unread counts and can trigger push notification delivery just like human senders.
-
 ## Calls
 
-- The app supports audio call initiation from non-saved chats.
+- The app supports audio call initiation from chats.
 - Incoming calls are listened for in real time from the `calls` collection.
 - Call signaling is stored in Firestore.
 - WebRTC peer connections are created with `simple-peer`.

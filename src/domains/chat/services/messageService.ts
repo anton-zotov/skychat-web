@@ -18,6 +18,7 @@ export const sendMessage = async (
     text: text.trim(),
     type,
     createdAt: serverTimestamp(),
+    readBy: { [currentUserId]: serverTimestamp() },
   };
   
   if (attachments.length > 0) {
@@ -47,11 +48,8 @@ export const sendMessage = async (
 
   const updates: any = {
     updatedAt: serverTimestamp(),
-    lastMessage: {
-      text: type === 'image' ? '📷 Фото' : (type === 'video' ? '📹 Видео' : (type === 'mixed' ? '📎 Вложения' : (text || ''))),
-      senderId: currentUserId,
-      createdAt: serverTimestamp(),
-    }
+    lastMessage: type === 'image' ? '📷 Фото' : (type === 'video' ? '📹 Видео' : (type === 'mixed' ? '📎 Вложения' : (text || ''))),
+    lastSenderId: currentUserId,
   };
   
   chat.participants?.forEach(p => {
@@ -74,7 +72,7 @@ export const sendMessage = async (
   };
 
   chat.participants?.forEach(async (p) => {
-    if (p && p !== currentUserId && p !== 'echo_bot') {
+    if (p && p !== currentUserId) {
       try {
         const userDoc = await getDoc(doc(db, 'users', p));
         const userData = userDoc.data() as UserProfile;
@@ -93,84 +91,6 @@ export const sendMessage = async (
       }
     }
   });
-};
-
-export const scheduleEchoBotReply = (
-  chat: Chat, 
-  type: string, 
-  text: string, 
-  fileUrl?: string, 
-  fileName?: string, 
-  instant: boolean = false
-) => {
-  const delay = instant ? 1000 : 10000;
-  
-  setTimeout(async () => {
-    try {
-      const msgText = instant ? text : `Эхо: ${text}`;
-      
-      const messageData: any = {
-        chatId: chat.id,
-        senderId: 'echo_bot',
-        text: msgText,
-        type: type as any,
-        createdAt: serverTimestamp(),
-      };
-      
-      if (fileUrl) {
-        messageData.fileUrl = fileUrl;
-        if (fileName) messageData.fileName = fileName;
-      }
-
-      await addDoc(collection(db, 'chats', chat.id, 'messages'), messageData);
-
-      const echoUpdates: any = {
-        updatedAt: serverTimestamp(),
-        lastMessage: {
-          text: type === 'image' ? '📷 Фото' : (type === 'video' ? '📹 Видео' : (type === 'file' ? `📄 ${fileName}` : msgText)),
-          senderId: 'echo_bot',
-          createdAt: serverTimestamp(),
-        }
-      };
-      
-      chat.participants?.forEach(p => {
-        if (p && p !== 'echo_bot') {
-          echoUpdates[`unreadCount.${p}`] = increment(1);
-        }
-      });
-
-      await updateDoc(doc(db, 'chats', chat.id), echoUpdates);
-      
-      const pushPayload = {
-        title: chat.type === 'group' ? `${chat.name} (Эхо-бот)` : 'Эхо-бот',
-        body: type === 'image' ? (fileName === 'GIF' ? 'GIF' : '📷 Фото') : (type === 'video' ? '📹 Видео' : (type === 'file' ? `📄 ${fileName}` : (msgText || ''))),
-        url: `/chat/${chat.id}`
-      };
-
-      chat.participants?.forEach(async (p) => {
-        if (p && p !== 'echo_bot') {
-          try {
-            const userDoc = await getDoc(doc(db, 'users', p));
-            const userData = userDoc.data() as UserProfile;
-            if (userData?.pushSubscription) {
-              await fetch('/api/sendPush', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  subscription: userData.pushSubscription,
-                  payload: pushPayload
-                })
-              });
-            }
-          } catch (err) {
-            console.error("Failed to send push from echo bot", p, err);
-          }
-        }
-      });
-    } catch (err) {
-      console.error("Error sending echo message:", err);
-    }
-  }, delay);
 };
 
 export const deleteMessage = async (chatId: string, messageId: string) => {

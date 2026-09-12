@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useCollection, useDocument } from 'react-firebase-hooks/firestore';
 import { Toaster } from 'sonner';
-import { addDoc, collection, doc, getDocs, onSnapshot, orderBy, query, serverTimestamp, setDoc, where } from 'firebase/firestore';
+import { collection, doc, onSnapshot, orderBy, query, serverTimestamp, setDoc, where } from 'firebase/firestore';
 
 import { auth, db } from '@/firebase';
 import { LoadingScreen } from '@domains/auth/components/LoadingScreen';
@@ -20,13 +20,8 @@ import { useWindowsBuild } from '@domains/app/hooks/useWindowsBuild';
 import { SettingsModal } from '@domains/settings/components/SettingsModal';
 import { useTheme } from '@shared/hooks/useTheme';
 import { ErrorBoundary } from '@shared/ui/ErrorBoundary';
-import { ECHO_BOT_USER } from '@shared/constants';
 import { cn } from '@/utils';
 import type { Call, Chat, UserProfile } from './types';
-
-function ensureSavedMessagesLabel() {
-  return 'Свои сообщения';
-}
 
 export default function App() {
   const [user, loading] = useAuthState(auth);
@@ -61,7 +56,7 @@ export default function App() {
   const currentUserData = currentUserDoc?.data() as UserProfile | undefined;
 
   const users = useMemo(() => {
-    const map: Record<string, UserProfile> = { echo_bot: ECHO_BOT_USER };
+    const map: Record<string, UserProfile> = {};
     usersValue?.docs.forEach((userDoc) => {
       map[userDoc.id] = userDoc.data() as UserProfile;
     });
@@ -69,7 +64,9 @@ export default function App() {
   }, [usersValue]);
 
   const chats = useMemo(() => {
-    return chatsValue?.docs.map((chatDoc) => ({ id: chatDoc.id, ...chatDoc.data() } as Chat)) || [];
+    return chatsValue?.docs
+      .filter((chatDoc) => chatDoc.data().type !== 'saved')
+      .map((chatDoc) => ({ id: chatDoc.id, ...chatDoc.data() } as Chat)) || [];
   }, [chatsValue]);
 
   const filteredChats = useMemo(() => {
@@ -77,10 +74,6 @@ export default function App() {
 
     const lowerQuery = searchQuery.toLowerCase();
     return chats.filter((chat) => {
-      if (chat.type === 'saved') {
-        return ensureSavedMessagesLabel().toLowerCase().includes(lowerQuery) || 'заметки'.includes(lowerQuery);
-      }
-
       if (chat.type === 'group') {
         return chat.name?.toLowerCase().includes(lowerQuery);
       }
@@ -173,35 +166,6 @@ export default function App() {
     });
 
     return () => unsubscribe();
-  }, [user]);
-
-  useEffect(() => {
-    if (!user) return;
-
-    const ensureSavedMessages = async () => {
-      try {
-        const savedMessagesQuery = query(
-          collection(db, 'chats'),
-          where('participants', 'array-contains', user.uid)
-        );
-        const snapshot = await getDocs(savedMessagesQuery);
-        const savedChat = snapshot.docs.find((chatDoc) => chatDoc.data().type === 'saved');
-
-        if (!savedChat) {
-          await addDoc(collection(db, 'chats'), {
-            name: ensureSavedMessagesLabel(),
-            type: 'saved',
-            participants: [user.uid],
-            updatedAt: serverTimestamp(),
-            createdBy: user.uid,
-          });
-        }
-      } catch (error) {
-        console.error('Error ensuring saved messages chat:', error);
-      }
-    };
-
-    ensureSavedMessages();
   }, [user]);
 
   useEffect(() => {

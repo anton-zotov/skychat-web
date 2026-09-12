@@ -10,11 +10,10 @@ import i18n_ru from '@emoji-mart/data/i18n/ru.json';
 import { db, storage } from '@/firebase';
 import { Chat, Message, UserProfile } from '@shared/types';
 import { Button } from '@shared/ui/Button';
-import { ECHO_BOT_USER } from '@shared/constants';
 import { isImageFile, isVideoFile } from '@shared/helpers/file';
 import { searchEmojis } from '@shared/helpers/emoji';
 import { cn } from '@/utils';
-import { sendMessage, scheduleEchoBotReply } from '@domains/chat/services/messageService';
+import { sendMessage } from '@domains/chat/services/messageService';
 import { compressImage, rotateImage } from '@domains/media/services/uploadService';
 import { GifPicker } from '@domains/media/components/GifPicker';
 
@@ -51,10 +50,8 @@ export function MessageInput({ chat, currentUserId, replyTo, onRequestScrollToBo
     }
   }, [text, chatId]);
 
-  const [replySenderValue] = useDocument(replyTo?.senderId && replyTo?.senderId !== 'echo_bot' ? doc(db, 'users', replyTo.senderId) : null);
-  const replySender = replyTo?.senderId === 'echo_bot' 
-    ? ECHO_BOT_USER 
-    : replySenderValue?.data() as UserProfile | undefined;
+  const [replySenderValue] = useDocument(replyTo?.senderId ? doc(db, 'users', replyTo.senderId) : null);
+  const replySender = replySenderValue?.data() as UserProfile | undefined;
 
   const handleSend = async (msgText: string = '', type: 'text' | 'image' | 'video' | 'file' | 'mixed' = 'text', fileUrl?: string, fileName?: string) => {
     const safeChatId = chatId || chat.id;
@@ -128,13 +125,6 @@ export function MessageInput({ chat, currentUserId, replyTo, onRequestScrollToBo
 
       await sendMessage(chat, currentUserId, textToSend, actualType, attachments, replyTo || undefined, finalFileUrl, finalFileName);
       onRequestScrollToBottom();
-
-      if (chat.type === 'saved' && actualType === 'text' && textToSend && textToSend.startsWith('/echo')) {
-        const echoText = textToSend.substring(5).trim() || 'Эхо!';
-        scheduleEchoBotReply(chat, 'text', echoText, undefined, undefined, true);
-      } else {
-        scheduleEchoBotReply(chat, actualType, textToSend || '', finalFileUrl, finalFileName);
-      }
 
     } catch (err) {
       console.error("Error sending message:", err);
