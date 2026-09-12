@@ -104,7 +104,7 @@ function ChatItem({
     (otherParticipantId === 'echo_bot' ||
       (otherUser?.lastSeen &&
         typeof otherUser.lastSeen.toMillis === 'function' &&
-        Date.now() - otherUser.lastSeen.toMillis() < 120000));
+        Date.now() - otherUser.lastSeen.toMillis() < 60000));
 
   const myShowOnline = currentUserPrivacy?.showOnlineStatus !== false;
   const theirShowOnline = otherUser?.privacy?.showOnlineStatus !== false;

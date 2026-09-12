@@ -224,7 +224,7 @@ export default function App() {
     };
 
     updatePresence();
-    const intervalId = window.setInterval(updatePresence, 60_000);
+    const intervalId = window.setInterval(updatePresence, 30_000);
     return () => window.clearInterval(intervalId);
   }, [user]);
 

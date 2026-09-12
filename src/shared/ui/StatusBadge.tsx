@@ -10,7 +10,7 @@ export const StatusBadge = ({ user, showText = false, currentUserId }: { user?: 
 
   if (!user) return null;
 
-  const isOnline = user.uid === 'echo_bot' || (user.lastSeen && typeof user.lastSeen.toMillis === 'function' && (Date.now() - user.lastSeen.toMillis() < 120000)); // 2 minutes threshold
+  const isOnline = user.uid === 'echo_bot' || (user.lastSeen && typeof user.lastSeen.toMillis === 'function' && (Date.now() - user.lastSeen.toMillis() < 60000)); // 1 minute threshold
   
   // Reciprocity: If I hide my status, I can't see others' status
   const myShowOnline = currentUserData?.privacy?.showOnlineStatus !== false;
