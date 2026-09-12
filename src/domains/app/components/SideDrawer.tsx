@@ -8,6 +8,9 @@ import { Avatar } from '@shared/ui/Avatar';
 import { Button } from '@shared/ui/Button';
 import { cn } from '@/utils';
 
+const formatClientVersion = (version: string) =>
+  version.startsWith('v') ? version : `v${version}`;
+
 type SideDrawerProps = {
   isOpen: boolean;
   totalUnreadCount: number;
@@ -18,7 +21,9 @@ type SideDrawerProps = {
   };
   notifPermission: NotificationPermission;
   androidBuildUrl: string | null;
+  androidBuildVersion: string | null;
   windowsBuildUrl: string | null;
+  windowsBuildVersion: string | null;
   onClose: () => void;
   onOpenSettings: () => void;
   onRequestNotifications: () => void;
@@ -30,7 +35,9 @@ export function SideDrawer({
   user,
   notifPermission,
   androidBuildUrl,
+  androidBuildVersion,
   windowsBuildUrl,
+  windowsBuildVersion,
   onClose,
   onOpenSettings,
   onRequestNotifications,
@@ -109,6 +116,14 @@ export function SideDrawer({
             >
               <Smartphone size={20} />
               <span className="font-medium">Android клиент</span>
+              {androidBuildVersion && (
+                <span
+                  data-testid="android-client-version"
+                  className="ml-auto text-xs text-slate-400 dark:text-white/40"
+                >
+                  {formatClientVersion(androidBuildVersion)}
+                </span>
+              )}
             </a>
           )}
           {windowsBuildUrl && (
@@ -121,6 +136,14 @@ export function SideDrawer({
             >
               <Monitor size={20} />
               <span className="font-medium">Windows клиент</span>
+              {windowsBuildVersion && (
+                <span
+                  data-testid="windows-client-version"
+                  className="ml-auto text-xs text-slate-400 dark:text-white/40"
+                >
+                  {formatClientVersion(windowsBuildVersion)}
+                </span>
+              )}
             </a>
           )}
           <div className="my-2 border-t border-slate-200 dark:border-white/10" />
@@ -136,7 +159,7 @@ export function SideDrawer({
         </nav>
 
         <div className="p-4 border-t border-slate-200 text-center bg-white/70 dark:border-white/10 dark:bg-black/20">
-          <span className="text-xs font-medium text-slate-400 dark:text-white/45">{APP_VERSION}</span>
+          <span className="text-xs font-medium text-slate-400 dark:text-white/45">Web {APP_VERSION}</span>
         </div>
       </div>
     </>

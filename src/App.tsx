@@ -89,8 +89,8 @@ export default function App() {
     selectedChatId,
   });
 
-  const { url: androidBuildUrl } = useAndroidBuild();
-  const { url: windowsBuildUrl } = useWindowsBuild();
+  const { url: androidBuildUrl, version: androidBuildVersion } = useAndroidBuild();
+  const { url: windowsBuildUrl, version: windowsBuildVersion } = useWindowsBuild();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -221,7 +221,9 @@ export default function App() {
           user={user}
           notifPermission={notifPermission}
           androidBuildUrl={androidBuildUrl}
+          androidBuildVersion={androidBuildVersion}
           windowsBuildUrl={windowsBuildUrl}
+          windowsBuildVersion={windowsBuildVersion}
           onClose={() => setIsDrawerOpen(false)}
           onOpenSettings={() => {
             setIsSettingsModalOpen(true);

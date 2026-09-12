@@ -613,6 +613,15 @@ function seedStore() {
       documents.set(`chats/${chatId}/messages/${message.id}`, cloneValue(message));
     });
   });
+
+  documents.set('appConfig/android', {
+    version: '0.1.3',
+    downloadUrl: 'https://raw.githubusercontent.com/anton-zotov/skychat-builds/main/android/skychat-latest.apk',
+  });
+  documents.set('appConfig/windows', {
+    version: '0.1.0',
+    downloadUrl: 'https://raw.githubusercontent.com/anton-zotov/skychat-builds/main/desktop/skychat-latest.exe',
+  });
 }
 
 seedStore();

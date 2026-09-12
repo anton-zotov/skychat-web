@@ -1,4 +1,4 @@
-export const APP_VERSION = "v1.0.30";
+export const APP_VERSION = "v1.0.31";
 
 /**
  * Stable download URL of the latest published Android build. Lives in the

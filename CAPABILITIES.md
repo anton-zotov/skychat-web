@@ -18,7 +18,7 @@ This is the working product checklist for the web client (React + TypeScript + V
 - [x] Two-pane messenger layout on desktop; single-pane swap on mobile
 - [x] Reflect the active chat in the URL (`/chat/:id`) with browser back/forward support
 - [x] Side drawer with account info, notification controls, settings, client-build links, and sign-out
-- [x] Show Android and Windows download links (`appConfig/*` documents with stable-URL fallback)
+- [x] Show Android and Windows download links with published versions (`appConfig/*` documents with stable-URL fallback)
 - [x] Empty-state prompt when no chat is selected
 - [x] Keyboard shortcuts: `Esc` closes overlays, `Alt+1–9` and `Alt+↑/↓` switch chats, `Enter` sends, `Shift+Enter` inserts a newline
 - [x] Top-level error boundary with a recovery screen
